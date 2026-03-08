@@ -1,4 +1,4 @@
-package com.banelethabede.clear_path.user
+package com.banelethabede.clear_path.user;
 
 
 import jakarta.persistence.*;
@@ -15,7 +15,7 @@ public class User{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -23,5 +23,5 @@ public class User{
     @Column(nullable = false)
     private String password;
 
-    private String Role;
+    private String role;
 }
