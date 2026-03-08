@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.banelethabede.clear_path.organization.dto.OrganizationEnums;
 
@@ -18,6 +20,8 @@ import lombok.*;
 @Builder
 @Entity
 @Table(name = "organization")
+@EntityListeners(AuditingEntityListener.class)
+
 public class Organization {
 
     @Id
@@ -28,7 +32,7 @@ public class Organization {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "organization_type", nullable = false)
+    @Column(nullable = false)
     private OrganizationEnums type;
 
     @Column(nullable = false, updatable = false)
@@ -36,7 +40,7 @@ public class Organization {
     private java.time.LocalDateTime createdAt;
 
     @Column(nullable = false)
-    @LastModifiedBy
+    @LastModifiedDate
     private java.time.LocalDateTime updatedAt;
 }
 

@@ -2,7 +2,7 @@ package com.banelethabede.clear_path.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,33 +22,60 @@ public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        try {
-            authService.register(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
-        } catch (Exception e) {
-            logger.error("Registration failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+    /**
+     * Register an individual user.
+     */
+    @PostMapping("/register/individual")
+    public ResponseEntity<?> registerIndividual(@RequestBody RegisterRequest request) {
+
+        authService.registerIndividual(request);
+
+        return ResponseEntity.ok("Individual user registered successfully");
     }
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response){
-        try {
-            // Assuming your service now returns the email or a success message
-            String userEmail = authService.login(loginRequest, response);
+    /**
+     * Register a new organization and moderator user.
+     */
+    @PostMapping("/register/organization")
+    public ResponseEntity<?> registerOrganization(@RequestBody RegisterRequest request) {
 
-            return new ResponseEntity<>(userEmail + " signed in", HttpStatus.OK);
-        } catch (Exception e) {
-            logger.error("Login attempt failed: {}", e.getMessage());
-            return new ResponseEntity<>("Invalid credentials", HttpStatus.UNAUTHORIZED);
-        }
+        authService.registerOrgAndModeratorUser(request);
+
+        return ResponseEntity.ok("Organization and moderator registered successfully");
     }
 
-    @PostMapping("/signout")
-    public ResponseEntity<?> logoutUser(HttpServletResponse response) {
+    /**
+     * Add a user to an existing organization.
+     */
+    @PostMapping("/register/user")
+    public ResponseEntity<?> addUserToOrganization(@RequestBody RegisterRequest request) {
+
+        authService.addUserToOrganization(request);
+
+        return ResponseEntity.ok("User added to organization successfully");
+    }
+
+    /**
+     * Login endpoint.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequest request,
+            HttpServletResponse response) {
+
+        String username = authService.login(request, response);
+
+        return ResponseEntity.ok(username);
+    }
+
+    /**
+     * Logout endpoint.
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+
         authService.logout(response);
-        return new ResponseEntity<>("You've been signed out!", HttpStatus.OK);
+
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
