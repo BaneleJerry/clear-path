@@ -46,7 +46,6 @@ public class JwtService {
     
     public String getJwtFromCookie(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, "JWT");
-        System.out.println("Extracted JWT from cookie: " + (cookie != null ? cookie.getValue() : "No cookie found"));
         return cookie != null ? cookie.getValue() : null;
     }
     
