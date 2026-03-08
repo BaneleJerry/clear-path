@@ -1,5 +1,5 @@
 package com.banelethabede.clear_path.organization.dto;
 
-public enum organizationEnums {
+public enum OrganizationEnums {
     INDIVIDUAL, COMPANY
 }

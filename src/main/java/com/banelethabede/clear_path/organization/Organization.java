@@ -5,7 +5,8 @@ import java.util.UUID;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 
-import com.banelethabede.clear_path.organization.dto.organizationEnums;
+import com.banelethabede.clear_path.organization.dto.OrganizationEnums;
+
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,7 @@ import lombok.*;
 @Builder
 @Entity
 @Table(name = "organization")
-public class organization {
+public class Organization {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,8 +29,7 @@ public class organization {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "organization_type", nullable = false)
-    @ManyToOne
-    private organizationEnums Type;
+    private OrganizationEnums type;
 
     @Column(nullable = false, updatable = false)
     @CreatedDate
