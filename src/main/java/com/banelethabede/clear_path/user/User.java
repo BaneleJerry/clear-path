@@ -1,6 +1,8 @@
 package com.banelethabede.clear_path.user;
 
 
+import com.banelethabede.clear_path.roles.Role;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,5 +25,7 @@ public class User{
     @Column(nullable = false)
     private String password;
 
-    private String role;
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 }
