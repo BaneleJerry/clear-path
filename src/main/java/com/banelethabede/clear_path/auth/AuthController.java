@@ -19,7 +19,7 @@ public class AuthController {
     
     private final AuthService authService;
 
-
+    @SuppressWarnings(value = { "notUsed" })
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
