@@ -43,4 +43,6 @@ class UserRepositoryTest {
         assertThat(savedUser.getId()).isNotNull();
         System.out.println("Generated UUID: " + savedUser.getId());
     }
+
+    
 }
