@@ -108,17 +108,21 @@ class AuthServiceTest {
             Organization org = organizationRepository.findAll().get(0);
             assertThat(org.getType()).isEqualTo(OrganizationEnums.INDIVIDUAL);
         }
-        
-    }
 
-    @Test
+        @Test
         void shouldThrowExceptionWhenUserAlreadyExists() {
-            
+
             RegisterRequest request = createIndividualRequest();
             authService.registerIndividual(request);
             assertThatThrownBy(() ->
                     authService.registerIndividual(request)
             ).isInstanceOf(EntityExistsException.class);
         }
+        
+    }
+
+    
+    
+
    
 }
