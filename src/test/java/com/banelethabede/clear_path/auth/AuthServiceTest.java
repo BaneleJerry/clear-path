@@ -28,6 +28,7 @@ import com.banelethabede.clear_path.roles.Role;
 import com.banelethabede.clear_path.roles.RoleName;
 import com.banelethabede.clear_path.roles.RoleRepository;
 import com.banelethabede.clear_path.security.jwt.JwtService;
+import com.banelethabede.clear_path.user.User;
 import com.banelethabede.clear_path.user.UserRepository;
 
 import jakarta.persistence.EntityExistsException;
@@ -73,9 +74,14 @@ class AuthServiceTest {
         organizationRepository.deleteAll();
         roleRepository.deleteAll();
 
-        Role role = new Role();
-        role.setName(RoleName.ROLE_USER);
-        roleRepository.save(role);
+        Role userRole = new Role();
+        userRole.setName(RoleName.ROLE_USER);
+
+        Role moderatorRole = new Role();
+        moderatorRole.setName(RoleName.ROLE_MODERATOR);
+
+        roleRepository.save(userRole);
+        roleRepository.save(moderatorRole);
 
         // Mock the encoder behavior
         when(passwordEncoder.encode("password")).thenReturn("encoded-password");
@@ -121,8 +127,75 @@ class AuthServiceTest {
         
     }
 
-    
-    
+    @Nested
+    public class RegisterOrgAndModeratorTest{
+        
+        @Test
+        void ShouldCreaOrgAndModerator(){
 
+            RegisterRequest registerRequest = createOrganizationRequest();
+
+            authService.registerOrgAndModeratorUser(registerRequest);
+
+            assertThat(userRepository.existsByEmail(registerRequest.getEmail())).isTrue();
+
+            Organization org = organizationRepository.findByName("TestOrg");
+            assertThat(org).isNotNull();
+
+        }
+
+
+        @Test
+        void shouldFailWhenOrganizationAlreadyExists() {
+
+            RegisterRequest first = createOrganizationRequest();
+            authService.registerOrgAndModeratorUser(first);
+
+            RegisterRequest second = createOrganizationRequest();
+            second.setEmail("another@company.com"); // different user
+
+            assertThatThrownBy(() ->
+                    authService.registerOrgAndModeratorUser(second)
+            ).isInstanceOf(EntityExistsException.class);
+        }
+    }
+
+    @Nested
+    class AddUserToOrganizationTests {
+
+        @Test
+        void shouldAddUserToExistingOrganization() {
+
+            Organization org = Organization.builder()
+                    .name("TestOrg")
+                    .type(OrganizationEnums.COMPANY)
+                    .build();
+
+            organizationRepository.save(org);
+
+            RegisterRequest request = createIndividualRequest();
+            request.setOrganizationName("TestOrg");
+
+            authService.addUserToOrganization(request);
+
+            User user = userRepository
+                .findByEmail(request.getEmail())
+                .orElseThrow(() -> new AssertionError("User not created"));
+
+            assertThat(user.getOrganization().getName())
+                    .isEqualTo("TestOrg");
+        }
+
+        @Test
+        void shouldFailWhenOrganizationDoesNotExist() {
+
+            RegisterRequest request = createIndividualRequest();
+            request.setOrganizationName("MissingOrg");
+
+            assertThatThrownBy(() ->
+                    authService.addUserToOrganization(request)
+            ).isInstanceOf(EntityExistsException.class);
+        }
+    }
    
 }

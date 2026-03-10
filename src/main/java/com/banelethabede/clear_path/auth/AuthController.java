@@ -1,7 +1,7 @@
 package com.banelethabede.clear_path.auth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +19,8 @@ public class AuthController {
     
     private final AuthService authService;
 
-    @SuppressWarnings(value = { "notUsed" })
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    // @SuppressWarnings(value = { "notUsed" })
+    // private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
      * Register an individual user.
