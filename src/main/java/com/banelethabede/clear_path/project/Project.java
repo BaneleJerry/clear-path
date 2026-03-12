@@ -44,7 +44,7 @@ public class Project {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ProjectStatusEnum projectStatusEnum;
+    private ProjectStatusEnum status;
 
     @Builder.Default
     @Column(name = "progress_percentage", nullable = false)

@@ -34,7 +34,7 @@ public class ProjectService {
                 .name(dto.name())
                 .description(dto.description())
                 .organization(org)
-                .projectStatusEnum(ProjectStatusEnum.PLANNING)
+                .status(ProjectStatusEnum.PLANNING)
                 .progressPercentage(0)
                 .startDate(dto.startDate())
                 .deadline(dto.deadline())
@@ -99,7 +99,7 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found"));
 
-        project.setProjectStatusEnum(status);
+        project.setStatus(status);
 
         Project updatedProject = projectRepository.save(project);
 
@@ -144,12 +144,12 @@ public class ProjectService {
                 project.getId(),
                 project.getName(),
                 project.getDescription(),
-                project.getProjectStatusEnum(),
+                project.getStatus(),
                 project.getProgressPercentage(),
                 project.getStartDate(),
                 project.getDeadline(),
                 project.getOrganization().getId(),
                 project.getCreatedAt(),
                 project.getUpdatedAt());
-    }
+    }    
 }
