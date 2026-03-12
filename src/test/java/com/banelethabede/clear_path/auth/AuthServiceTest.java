@@ -2,6 +2,11 @@ package com.banelethabede.clear_path.auth;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +18,10 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -20,6 +29,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.banelethabede.clear_path.auth.dto.LoginRequest;
 import com.banelethabede.clear_path.auth.dto.RegisterRequest;
 import com.banelethabede.clear_path.organization.Organization;
 import com.banelethabede.clear_path.organization.OrganizationRepository;
@@ -32,6 +42,8 @@ import com.banelethabede.clear_path.user.User;
 import com.banelethabede.clear_path.user.UserRepository;
 
 import jakarta.persistence.EntityExistsException;
+import jakarta.servlet.http.HttpServletResponse;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -43,8 +55,7 @@ class AuthServiceTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = 
-            new PostgreSQLContainer<>("postgres:16-alpine");
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Autowired
     private AuthService authService;
@@ -104,7 +115,7 @@ class AuthServiceTest {
     }
 
     @Nested
-    public class RegisterIndividualTests  {
+    public class RegisterIndividualTests {
         @Test
         void shouldRegisterIndividualUserWithOrganization() {
 
@@ -120,18 +131,16 @@ class AuthServiceTest {
 
             RegisterRequest request = createIndividualRequest();
             authService.registerIndividual(request);
-            assertThatThrownBy(() ->
-                    authService.registerIndividual(request)
-            ).isInstanceOf(EntityExistsException.class);
+            assertThatThrownBy(() -> authService.registerIndividual(request)).isInstanceOf(EntityExistsException.class);
         }
-        
+
     }
 
     @Nested
-    public class RegisterOrgAndModeratorTest{
-        
+    public class RegisterOrgAndModeratorTest {
+
         @Test
-        void ShouldCreaOrgAndModerator(){
+        void ShouldCreaOrgAndModerator() {
 
             RegisterRequest registerRequest = createOrganizationRequest();
 
@@ -144,7 +153,6 @@ class AuthServiceTest {
 
         }
 
-
         @Test
         void shouldFailWhenOrganizationAlreadyExists() {
 
@@ -154,9 +162,8 @@ class AuthServiceTest {
             RegisterRequest second = createOrganizationRequest();
             second.setEmail("another@company.com"); // different user
 
-            assertThatThrownBy(() ->
-                    authService.registerOrgAndModeratorUser(second)
-            ).isInstanceOf(EntityExistsException.class);
+            assertThatThrownBy(() -> authService.registerOrgAndModeratorUser(second))
+                    .isInstanceOf(EntityExistsException.class);
         }
     }
 
@@ -179,8 +186,8 @@ class AuthServiceTest {
             authService.addUserToOrganization(request);
 
             User user = userRepository
-                .findByEmail(request.getEmail())
-                .orElseThrow(() -> new AssertionError("User not created"));
+                    .findByEmail(request.getEmail())
+                    .orElseThrow(() -> new AssertionError("User not created"));
 
             assertThat(user.getOrganization().getName())
                     .isEqualTo("TestOrg");
@@ -192,10 +199,80 @@ class AuthServiceTest {
             RegisterRequest request = createIndividualRequest();
             request.setOrganizationName("MissingOrg");
 
-            assertThatThrownBy(() ->
-                    authService.addUserToOrganization(request)
-            ).isInstanceOf(EntityExistsException.class);
+            assertThatThrownBy(() -> authService.addUserToOrganization(request))
+                    .isInstanceOf(EntityExistsException.class);
         }
     }
-   
+
+    @Nested
+    class LoginTests {
+
+        @Test
+        void shouldAuthenticateAndGenerateJwt() {
+            // Arrange
+            LoginRequest request = new LoginRequest();
+            request.setEmail("test@company.com");
+            request.setPassword("password");
+
+            Authentication authentication = mock(Authentication.class);
+            UserDetails userDetails = mock(UserDetails.class);
+            HttpServletResponse response = mock(HttpServletResponse.class);
+
+            // Mocking the authentication flow
+            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                    .thenReturn(authentication);
+
+            when(authentication.getPrincipal()).thenReturn(userDetails);
+            when(userDetails.getUsername()).thenReturn("test@company.com");
+
+            // Act
+            String result = authService.login(request, response);
+
+            // Assert & Verify
+            // Ensure the token generation was actually triggered with the right email
+            verify(jwtService).generateToken(eq("test@company.com"), eq(response));
+
+            assertThat(result).isEqualTo("test@company.com");
+        }
+
+        @Test
+        void shouldThrowException_WhenCredentialsAreInvalid() {
+            // Arrange
+            LoginRequest request = new LoginRequest();
+            request.setEmail("test@company.com");
+            request.setPassword("wrong-password");
+
+            // Tell the mock to throw an error when this specific call happens
+            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                    .thenThrow(new BadCredentialsException("Invalid username or password"));
+
+            HttpServletResponse response = mock(HttpServletResponse.class);
+
+            // Act & Assert
+            assertThatThrownBy(() -> authService.login(request, response))
+                    .isInstanceOf(BadCredentialsException.class)
+                    .hasMessageContaining("Invalid username or password");
+
+            // Verify: The JWT service should NEVER be called if authentication fails
+            verifyNoInteractions(jwtService);
+        }
+    }
+
+
+    @Nested
+    class logoutTest{
+
+        @Test
+        void shouldRemoveJwtCookie() {
+            // Arrange
+            HttpServletResponse response = mock(HttpServletResponse.class);
+
+            // Act
+            authService.logout(response);
+
+            // Assert (Corrected Syntax)
+            verify(jwtService).removeTokenFromCookie(response);
+        }
+    }
+
 }
