@@ -12,7 +12,7 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
 
     List<Project> findAllByOrganizationId(UUID organizationId);
 
-    List<Project> findAllByProjectStatusEnum(ProjectStatusEnum status);
+    List<Project> findAllByStatus(ProjectStatusEnum status);
 
    @EntityGraph(attributePaths = {"organization"})
     List<Project> findByOrganizationId(UUID organizationId);
