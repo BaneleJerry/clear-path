@@ -1,6 +1,8 @@
 package com.banelethabede.clear_path.user;
 
 import java.util.List;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,7 @@ public class UserService {
         return UserRepository.findByEmail(email).orElse(null);
     }
 
-    public User getUserById(long id){
+    public User getUserById(UUID id){
         return UserRepository.findById(id).orElse(null);
     }
 

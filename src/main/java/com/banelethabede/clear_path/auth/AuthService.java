@@ -85,7 +85,8 @@ public class AuthService {
 
         organizationRepository.save(organization);
 
-        Role role = roleRepository.findByName(RoleName.ROLE_USER);
+        Role role = roleRepository.findByName(RoleName.ROLE_USER)
+        .orElseThrow(() -> new IllegalStateException("ROLE_USER missing"));
 
         User user = User.builder()
                 .email(request.getEmail())
@@ -168,7 +169,8 @@ public class AuthService {
                 .organization(org)
                 .build();
 
-        Role role = roleRepository.findByName(RoleName.ROLE_MODERATOR);
+        Role role = roleRepository.findByName(RoleName.ROLE_USER)
+        .orElseThrow(() -> new IllegalStateException("ROLE_USER missing"));
         user.setRole(role);
 
         organizationRepository.save(org);
@@ -223,7 +225,8 @@ public class AuthService {
                 .organization(org)
                 .build();
 
-        Role role = roleRepository.findByName(RoleName.ROLE_USER);
+        Role role = roleRepository.findByName(RoleName.ROLE_USER)
+        .orElseThrow(() -> new IllegalStateException("ROLE_USER missing"));
         user.setRole(role);
 
         userRepository.save(user);
