@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class SecurityBeans {
     
-    // Inject your custom JWT filter
+    
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -39,8 +39,8 @@ public class SecurityBeans {
 
     
     @Bean
-SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
             .csrf(AbstractHttpConfigurer::disable)
             // 1. ADD THIS: Allows H2 Console frames to display
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))

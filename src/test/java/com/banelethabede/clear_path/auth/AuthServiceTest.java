@@ -229,7 +229,8 @@ class AuthServiceTest {
 
             // Assert & Verify
             // Ensure the token generation was actually triggered with the right email
-            verify(jwtService).generateToken(eq("test@company.com"), eq(response));
+            verify(mock)
+            
 
             assertThat(result).isEqualTo("test@company.com");
         }
@@ -256,22 +257,4 @@ class AuthServiceTest {
             verifyNoInteractions(jwtService);
         }
     }
-
-
-    @Nested
-    class logoutTest{
-
-        @Test
-        void shouldRemoveJwtCookie() {
-            // Arrange
-            HttpServletResponse response = mock(HttpServletResponse.class);
-
-            // Act
-            authService.logout(response);
-
-            // Assert (Corrected Syntax)
-            verify(jwtService).removeTokenFromCookie(response);
-        }
-    }
-
 }

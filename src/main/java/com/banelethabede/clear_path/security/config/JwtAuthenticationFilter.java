@@ -3,7 +3,6 @@ package com.banelethabede.clear_path.security.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -13,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.banelethabede.clear_path.security.jwt.JwtService;
 import com.banelethabede.clear_path.security.service.CustomUserDetailsService;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,21 +34,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, java.io.IOException {
 
         try {
-            String jwt = jwtService.getJwtFromCookie(request);
+            
+            String authHeader = request.getHeader("Authorization");
 
-                if (jwt == null || jwt.isBlank()) {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            jwtService.validateToken(jwt);
+            String token = authHeader.substring(7);
+
+            if (!jwtService.validateToken(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             
-            String userEmail = jwtService.extractEmail();
+            String email = jwtService.extractEmail(token);
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails = customUserDetailsService.loadUserByUsername(userEmail);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(
@@ -61,13 +67,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     new WebAuthenticationDetailsSource().buildDetails(request)
             );
 
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authToken);
-            SecurityContextHolder.setContext(context);
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
 
-        } catch (Exception e) {
+        } catch (JwtException | ServletException | java.io.IOException e) {
             logger.error("Invalid JWT token: {}", e.getMessage());
         }
         filterChain.doFilter(request, response);
