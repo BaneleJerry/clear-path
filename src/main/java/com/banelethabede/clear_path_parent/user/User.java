@@ -3,6 +3,7 @@ package com.banelethabede.clear_path_parent.user;
 
 //import com.banelethabede.clear_path.organization.Organization;
 //import com.banelethabede.clear_path.roles.Role;
+import com.banelethabede.clear_path_parent.organization.Organization;
 import com.banelethabede.clear_path_parent.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,9 +29,9 @@ public class User{
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "organization_id")
-//    private Organization organization;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
 
     @Column(nullable = false, unique = true)
     private String email;

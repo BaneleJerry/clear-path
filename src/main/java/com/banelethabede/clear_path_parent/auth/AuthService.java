@@ -4,6 +4,9 @@ package com.banelethabede.clear_path_parent.auth;
 import com.banelethabede.clear_path_parent.auth.dto.AuthResponse;
 import com.banelethabede.clear_path_parent.auth.dto.IndividualRegistrationRequest;
 import com.banelethabede.clear_path_parent.auth.dto.LoginRequest;
+import com.banelethabede.clear_path_parent.organization.Organization;
+import com.banelethabede.clear_path_parent.organization.OrganizationFactory;
+import com.banelethabede.clear_path_parent.organization.dto.OrganizationRepository;
 import com.banelethabede.clear_path_parent.role.Role;
 import com.banelethabede.clear_path_parent.role.RoleName;
 import com.banelethabede.clear_path_parent.role.RoleRepository;
@@ -28,6 +31,8 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
+    private final OrganizationFactory organizationFactory;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RoleService roleService;
@@ -39,9 +44,15 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EntityExistsException("Email already exists");
         }
+
+        Organization organization = organizationFactory.createBaseOrganization(request.getEmail());
+
         Role role = roleService.getRole(RoleName.ROLE_USER);
+
+        organizationRepository.save(organization);
+
         String password = passwordEncoder.encode(request.getPassword());
-        User user = userFactory.createBaseUser(request,role, password);
+        User user = userFactory.createBaseUser(request,role, password,organization);
         userRepository.save(user);
     }
 
