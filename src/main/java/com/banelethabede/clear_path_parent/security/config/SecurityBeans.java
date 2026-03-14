@@ -41,24 +41,25 @@ public class SecurityBeans {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            // 1. ADD THIS: Allows H2 Console frames to display
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+                .csrf(AbstractHttpConfigurer::disable)
+                // 1. ADD THIS: Allows H2 Console frames to display
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(exceptionHandling ->
-                            exceptionHandling
-                            .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-            )
-            .authorizeHttpRequests((auth) ->
-                    // 2. Wildcard (/**) is correctly added here
-                    auth.requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
-                        .anyRequest().authenticated()
-            )
-            .sessionManagement(manager -> manager
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling
+                                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                )
+                .authorizeHttpRequests((auth) ->
+                        auth.requestMatchers("/api/auth/**", "/h2-console/**", "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                                .anyRequest().authenticated()
+                )
+                .sessionManagement(manager -> manager
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-    return http.build();
-}
+        return http.build();
+    }
 }
