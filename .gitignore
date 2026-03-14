@@ -33,5 +33,6 @@ build/
 .vscode/
 
 
-# Personal files
+
+# My diff for git commit
 diff.txt
