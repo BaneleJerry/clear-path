@@ -68,14 +68,14 @@ public class AuthController {
         return ResponseEntity.ok(username);
     }
 
-    /**
-     * Logout endpoint.
-     */
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    // /**
+    //  * Logout endpoint.
+    //  */
+    // @PostMapping("/logout")
+    // public ResponseEntity<?> logout(HttpServletResponse response) {
 
-        authService.logout(response);
+    //     authService.logout(response);
 
-        return ResponseEntity.ok("Logged out successfully");
-    }
+    //     return ResponseEntity.ok("Logged out successfully");
+    // }
 }

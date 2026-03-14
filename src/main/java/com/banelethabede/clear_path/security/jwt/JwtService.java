@@ -1,19 +1,18 @@
 package com.banelethabede.clear_path.security.jwt;
 
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.stereotype.Service;
+
+import com.banelethabede.clear_path.user.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.stereotype.Service;
-import org.springframework.web.util.WebUtils;
-
-
-import javax.crypto.SecretKey;
-import java.util.Date;
 
 @Service
 public class JwtService {
@@ -23,53 +22,42 @@ public class JwtService {
     // @Value("${jwt.expirationMs}")
     private final long jwtExpirationMs = 86400000; // 24 hours
 
-
-    private Claims claims;
-
-    public void generateToken(String email, HttpServletResponse response){
-        String jwt = Jwts.builder()
-                .subject(email)
+    public String generateToken(User user){
+            return Jwts.builder()
+                .subject(user.getEmail())
+                .claim("role",user.getRole().getName())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSignInKey())
                 .compact();
-
-        Cookie cookie = new Cookie("JWT", jwt);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(24 * 60 * 60); // 24 hours
-        response.addCookie(cookie);
+        
     }
 
-
-    
-    public String getJwtFromCookie(HttpServletRequest request) {
-        Cookie cookie = WebUtils.getCookie(request, "JWT");
-        return cookie != null ? cookie.getValue() : null;
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignInKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
-    
-    public void validateToken(String token) throws JwtException {
+
+    public String extractEmail(String token){
+        return extractAllClaims(token).getSubject();
+    }
+
+    public String extractRole(String token){
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+   
+    public boolean  validateToken(String token) throws JwtException {
 
         try {
-            claims = Jwts.parser()
-                    .verifyWith(getSignInKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-
-        } catch(JwtException e){
-            // catch null, wrong token, expired token
-            throw new JwtException(e.getMessage() + "I am firing here");
+            extractAllClaims(token);
+            return true;
+        } catch (JwtException e) {
+            return false;
         }
-    }
-
-    public void removeTokenFromCookie(HttpServletResponse response){
-        Cookie cookie = new Cookie("JWT", null);
-        cookie.setPath("/");
-
-        response.addCookie(cookie);
     }
 
     private SecretKey getSignInKey() {
@@ -78,8 +66,5 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String extractEmail() {
-        return claims.getSubject();
-    }
     
 }

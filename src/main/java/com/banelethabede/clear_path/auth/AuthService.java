@@ -268,29 +268,27 @@ public String login(LoginRequest request, HttpServletResponse response) {
 
     Authentication authResult = authenticationManager.authenticate(authToken);
 
-    SecurityContextHolder.getContext().setAuthentication(authResult);
 
-    jwtService.generateToken(request.getEmail(), response);
+    User userEntity = (User) authResult.getPrincipal();
 
-    UserDetails userDetails = (UserDetails) authResult.getPrincipal();
 
-    return userDetails.getUsername();
+    return jwtService.generateToken(userEntity);
 }
 
 
-/**
- * Logs out the currently authenticated user by removing the JWT cookie.
- *
- * <p>This method invalidates the authentication token stored in the client's
- * cookie by instructing the browser to delete it. After logout, the client
- * must authenticate again to access protected resources.</p>
- *
- * @param response HTTP response used to remove the authentication cookie
- *
- * @see JwtService
- */
-public void logout(HttpServletResponse response) {
-    jwtService.removeTokenFromCookie(response);
-}
+// /**
+//  * Logs out the currently authenticated user by removing the JWT cookie.
+//  *
+//  * <p>This method invalidates the authentication token stored in the client's
+//  * cookie by instructing the browser to delete it. After logout, the client
+//  * must authenticate again to access protected resources.</p>
+//  *
+//  * @param response HTTP response used to remove the authentication cookie
+//  *
+//  * @see JwtService
+//  */
+// public void logout(HttpServletResponse response) {
+//     jwtService.removeTokenFromCookie(response);
+// }
 
 }
