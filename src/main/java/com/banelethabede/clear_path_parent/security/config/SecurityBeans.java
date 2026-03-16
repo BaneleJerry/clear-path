@@ -51,7 +51,9 @@ public class SecurityBeans {
                                 .authenticationEntryPoint(new RestAuthenticationEntryPoint())
                 )
                 .authorizeHttpRequests((auth) ->
-                        auth.requestMatchers("/api/auth/**", "/h2-console/**", "/v3/api-docs/**",
+                        auth.requestMatchers("/api/auth/**", "/h2-console/**",
+                                        "/v3/api-docs/**",
+                                        "/actuator/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
