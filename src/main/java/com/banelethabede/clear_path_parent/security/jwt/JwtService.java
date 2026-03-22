@@ -4,9 +4,8 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import com.banelethabede.clear_path_parent.role.RoleName;
 import org.springframework.stereotype.Service;
-
-import com.banelethabede.clear_path_parent.user.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -22,10 +21,10 @@ public class JwtService {
     // @Value("${jwt.expirationMs}")
     private final long jwtExpirationMs = 86400000; // 24 hours
 
-    public String generateToken(User user){
+    public String generateToken(String email, RoleName role) {
         return Jwts.builder()
-                .subject(user.getEmail())
-//                .claim("role",user.getRole().getName())
+                .subject(email)
+                .claim("role",role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSignInKey())

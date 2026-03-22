@@ -1,10 +1,8 @@
 package com.banelethabede.clear_path_parent.user;
 
-
-//import com.banelethabede.clear_path.organization.Organization;
-//import com.banelethabede.clear_path.roles.Role;
 import com.banelethabede.clear_path_parent.organization.Organization;
 import com.banelethabede.clear_path_parent.role.Role;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -29,7 +27,7 @@ public class User{
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organization_id")
     private Organization organization;
 
@@ -57,10 +55,12 @@ public class User{
 
     @Column(nullable = false, updatable = false)
     @CreatedDate
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private java.time.LocalDateTime createdAt;
 
     @Column(nullable = false)
     @LastModifiedDate
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private java.time.LocalDateTime updatedAt;
 
 

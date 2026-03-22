@@ -1,22 +1,18 @@
 package com.banelethabede.clear_path_parent.user.dto;
 
 import com.banelethabede.clear_path_parent.role.Role;
+import lombok.Builder;
 import lombok.Data;
 
-@Data
-public class UpdateUserRoleDTO {
-    private String email;
-    private Role role;
-}
+import java.util.UUID;
 
 @Data
-public class UpdateUserStatusDTO {
+@Builder
+public class UserResponseDTO {
+    private UUID id;
     private String email;
-    private boolean active;
-}
-
-@Data
-public class UpdateProfileDTO {
     private String firstName;
     private String lastName;
+    private Role role;
+    private boolean active;
 }

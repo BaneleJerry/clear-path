@@ -1,4 +1,8 @@
 package com.banelethabede.clear_path_parent.user.dto;
 
-public class Update {
+import lombok.Data;
+
+@Data
+public class UpdateUserStatusDTO {
+    private boolean active;
 }

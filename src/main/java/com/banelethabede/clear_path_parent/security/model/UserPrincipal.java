@@ -1,45 +1,44 @@
 package com.banelethabede.clear_path_parent.security.model;
 
-import java.util.Collection;
-import java.util.List;
+import com.banelethabede.clear_path_parent.auth.dto.UserAuthCache;
 
-import org.jspecify.annotations.Nullable;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.banelethabede.clear_path_parent.user.User;
+import java.util.Collection;
+import java.util.List;
 
-import lombok.RequiredArgsConstructor;
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserPrincipal implements UserDetails {
 
-@RequiredArgsConstructor
-public class UserPrincipal implements UserDetails{
+    // We swap the heavy 'User' entity for the light 'UserAuthCache' DTO
+    private UserAuthCache cachedUser;
 
-     private final User user;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
 
-     public User getUser() {
-         return user;
-     }
+        return List.of(new SimpleGrantedAuthority(cachedUser.getRole()));
+    }
 
-     @Override
-     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(user.getRole().toString()));
-     }
+    @Override
+    public String getPassword() {
+        return cachedUser.getPassword();
+    }
 
-     @Override
-     public @Nullable String getPassword() {
-        return user.getPassword();
-     }
+    @Override
+    public String getUsername() {
+        return cachedUser.getUsername();
+    }
 
-     @Override
-     public String getUsername() {
-        return user.getEmail();
-     }
-
-     @Override
-        public boolean isAccountNonExpired() {
-            return true;
-        }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
     @Override
     public boolean isAccountNonLocked() {
@@ -47,10 +46,13 @@ public class UserPrincipal implements UserDetails{
     }
 
     @Override
-    public boolean isCredentialsNonExpired() {return true;}
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
     @Override
-    public boolean isEnabled() {return true;}
-
-
+    public boolean isEnabled() {
+        // Use the active status from the DTO
+        return cachedUser.isActive();
+    }
 }

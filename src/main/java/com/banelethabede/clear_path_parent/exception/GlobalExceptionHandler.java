@@ -1,7 +1,7 @@
 package com.banelethabede.clear_path_parent.exception;
 
 import com.banelethabede.clear_path_parent.common.ApiResponse;
-import com.banelethabede.clear_path_parent.common.api.ApiResponse;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class GlobalExceptionHandler {
         );
 
         ApiResponse<Object> response = ApiResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(OffsetDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Validation Failed")
                 .message("Invalid input data")
@@ -45,7 +46,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         ApiResponse<Object> response = ApiResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(OffsetDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error("Internal Server Error")
                 .message(ex.getMessage())

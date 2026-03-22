@@ -1,11 +1,15 @@
 package com.banelethabede.clear_path_parent.security.config;
 
+import com.banelethabede.clear_path_parent.common.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,8 +21,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityBeans {
 
 
@@ -46,10 +54,26 @@ public class SecurityBeans {
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling
-                                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                        .accessDeniedHandler((request, response, ex) -> {
+                            ApiResponse<Object> apiResponse = ApiResponse.builder()
+                                    .timestamp(OffsetDateTime.now())
+                                    .status(HttpServletResponse.SC_FORBIDDEN)
+                                    .error("Forbidden")
+                                    .message("You do not have permission")
+                                    .path(request.getRequestURI())
+                                    .data(null)
+                                    .build();
+
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+
+                            new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
+                        })
                 )
+
+
                 .authorizeHttpRequests((auth) ->
                         auth.requestMatchers("/api/auth/**", "/h2-console/**",
                                         "/v3/api-docs/**",
