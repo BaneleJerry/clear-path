@@ -2,14 +2,19 @@ package com.banelethabede.clear_path_parent.security.service;
 
 
 
+import com.banelethabede.clear_path_parent.auth.AuthService;
+import com.banelethabede.clear_path_parent.auth.UserCacheService;
+import com.banelethabede.clear_path_parent.auth.dto.UserAuthCache;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.banelethabede.clear_path_parent.security.model.UserPrincipal;
-import com.banelethabede.clear_path_parent.user.User;
-import com.banelethabede.clear_path_parent.user.UserRepository;
+
+
+
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,13 +22,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
 
+    private final UserCacheService userCacheService;
     @Override
     public UserDetails loadUserByUsername(String username) {
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
-        return new UserPrincipal(user);
+        UserAuthCache cached = userCacheService.getCachedUser(username);
+        // Reconstruct a UserPrincipal or SimpleUser from the flat DTO
+        return new UserPrincipal(cached);
     }
-
 }
