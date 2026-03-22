@@ -5,13 +5,19 @@ package com.banelethabede.clear_path_parent.auth;
 import com.banelethabede.clear_path_parent.auth.dto.AuthResponse;
 import com.banelethabede.clear_path_parent.auth.dto.IndividualRegistrationRequest;
 import com.banelethabede.clear_path_parent.auth.dto.LoginRequest;
+import com.banelethabede.clear_path_parent.common.ApiResponse;
+import com.banelethabede.clear_path_parent.common.ApiResponseUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
 
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,9 +30,19 @@ public class AuthController {
      * Register an individual user.
      */
     @PostMapping("/register/individual")
-    public ResponseEntity<String> registerIndividual(@Valid @RequestBody IndividualRegistrationRequest request) {
+    public ResponseEntity<ApiResponse<Void>> registerIndividual(
+            @Valid @RequestBody IndividualRegistrationRequest request,
+            HttpServletRequest httpRequest
+    ) {
         authService.registerIndividual(request);
-        return ResponseEntity.ok("Individual user registered successfully");
+
+        return ResponseEntity.ok(
+                ApiResponseUtil.success(
+                        "Individual user registered successfully",
+                        httpRequest.getRequestURI(),
+                        null
+                )
+        );
     }
 
 
@@ -34,11 +50,18 @@ public class AuthController {
      * Login endpoint.
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login( @Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
 
-        AuthResponse authResponse = authService.login(request);
-        return ResponseEntity.ok(authResponse);
+        AuthResponse auth = authService.login(request);
+
+        return ResponseEntity.ok(ApiResponseUtil.success(
+                "Login Succesfully",
+                httpRequest.getRequestURI(),
+                auth
+        ));
     }
+
+
 
 
 }

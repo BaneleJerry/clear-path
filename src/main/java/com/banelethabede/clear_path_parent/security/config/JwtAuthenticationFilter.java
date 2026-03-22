@@ -1,5 +1,7 @@
 package com.banelethabede.clear_path_parent.security.config;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,7 +15,6 @@ import com.banelethabede.clear_path_parent.security.jwt.JwtService;
 import com.banelethabede.clear_path_parent.security.service.CustomUserDetailsService;
 
 import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,22 +22,46 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService customUserDetailsService) {
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
+    public JwtAuthenticationFilter(JwtService jwtService,
+                                   CustomUserDetailsService customUserDetailsService) {
         this.jwtService = jwtService;
         this.customUserDetailsService = customUserDetailsService;
     }
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, java.io.IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
+        String path = request.getServletPath();
 
+        System.out.println("SERVLET PATH: " + request.getServletPath());
+        System.out.println("REQUEST URI: " + request.getRequestURI());
+        System.out.println("CONTEXT PATH: " + request.getContextPath());
+
+        if (path.startsWith("/api/auth/")
+                || path.equals("/api/auth")
+                || path.contains("/swagger")
+                || path.contains("/v3/api-docs")) {
+
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
-
             String authHeader = request.getHeader("Authorization");
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -51,12 +76,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-
             String email = jwtService.extractEmail(token);
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+                UserDetails userDetails =
+                        customUserDetailsService.loadUserByUsername(email);
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
@@ -72,10 +97,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
 
-
-        } catch (JwtException | ServletException | java.io.IOException e) {
+        } catch (JwtException e) {
             logger.error("Invalid JWT token: {}", e.getMessage());
         }
+
         filterChain.doFilter(request, response);
     }
 }
