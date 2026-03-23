@@ -1,5 +1,6 @@
 package com.banelethabede.clear_path_parent.project;
 
+import com.banelethabede.clear_path_parent.exception.ResourceNotFoundException;
 import com.banelethabede.clear_path_parent.organization.Organization;
 import com.banelethabede.clear_path_parent.organization.dto.OrganizationRepository;
 import com.banelethabede.clear_path_parent.project.dto.ProjectRequestDTO;
@@ -76,8 +77,7 @@ public class ProjectService {
      */
     public ProjectResponseDTO updateProject(UUID projectId, ProjectRequestDTO dto) {
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+        Project project = getByID(projectId);
 
         project.setName(dto.name());
         project.setDescription(dto.description());
@@ -94,8 +94,7 @@ public class ProjectService {
      */
     public ProjectResponseDTO updateProjectStatus(UUID projectId, ProjectStatus status) {
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+        Project project = getByID(projectId);
 
         project.setStatus(status);
 
@@ -113,8 +112,7 @@ public class ProjectService {
             throw new IllegalArgumentException("Progress must be between 0 and 100");
         }
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+        Project project = getByID(projectId);
 
         project.setProgressPercentage(progress);
 
@@ -132,6 +130,11 @@ public class ProjectService {
             throw new EntityNotFoundException("Project not found");
         }
         projectRepository.deleteById(projectId);
+    }
+
+    public Project getByID(UUID projectID) {
+        return  projectRepository.findById(projectID)
+                .orElseThrow(() -> new ResourceNotFoundException("Project with id: " + projectID + " not found"));
     }
 
     private ProjectResponseDTO mapToResponseDTO(Project project) {
