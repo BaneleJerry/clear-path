@@ -4,6 +4,7 @@ import com.banelethabede.clear_path_parent.exception.BadRequestException;
 import com.banelethabede.clear_path_parent.exception.ResourceNotFoundException;
 import com.banelethabede.clear_path_parent.milestone.dto.MilestoneCreateRequestDTO;
 import com.banelethabede.clear_path_parent.milestone.dto.MilestoneResponse;
+import com.banelethabede.clear_path_parent.milestone.dto.MilestoneUpdateRequest;
 import com.banelethabede.clear_path_parent.project.Project;
 import com.banelethabede.clear_path_parent.project.ProjectService;
 import org.springframework.stereotype.Service;
@@ -49,12 +50,42 @@ public class MilestoneService {
         // Validate project existence; throws if not found
         Project project = projectService.getByID(projectID);
 
-        List<MilestoneResponse> milestones = milestoneRepository
+        return milestoneRepository
                 .findAllByProjectIdOrderByDueDateAsc(project.getId())
                 .stream()
                 .map(this::toResponse)
                 .toList();
-        return milestones;
+    }
+
+    @Transactional
+    public MilestoneResponse updateMilestone(Long milestoneId, MilestoneUpdateRequest request){
+        if (request == null) {
+            throw new BadRequestException("Milestone update request is null");
+        }
+
+        Milestone milestone = getMilestoneById(milestoneId);
+
+        if (milestone.getStatus() == MilestoneStatus.COMPLETED &&
+                request.getStatus() != MilestoneStatus.COMPLETED) {
+            throw new BadRequestException("Cannot change status of a completed milestone");
+        }
+
+        milestone.setTitle(request.getTitle());
+        milestone.setDueDate(request.getDueDate());
+        milestone.setStatus(request.getStatus());
+        milestone.setUpdatedAt(LocalDateTime.now());
+
+        return toResponse(milestoneRepository.save(milestone));
+    }
+
+    public Milestone getMilestoneById(Long id) {
+        if (id == null) {
+            throw new BadRequestException("Milestone id is null");
+        }
+
+        return milestoneRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Milestone with id " + id + " not found"));
     }
 
 

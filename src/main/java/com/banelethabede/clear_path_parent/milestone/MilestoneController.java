@@ -4,6 +4,7 @@ import com.banelethabede.clear_path_parent.common.ApiResponse;
 import com.banelethabede.clear_path_parent.common.ApiResponseUtil;
 import com.banelethabede.clear_path_parent.milestone.dto.MilestoneCreateRequestDTO;
 import com.banelethabede.clear_path_parent.milestone.dto.MilestoneResponse;
+import com.banelethabede.clear_path_parent.milestone.dto.MilestoneUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,12 @@ public class MilestoneController {
     ResponseEntity<List<MilestoneResponse>> getMilestones(@PathVariable UUID id){
         return ResponseEntity.ok(
                 milestoneService.getProjectMilestones(id));
+    }
+
+    @PutMapping("/milestones/{id}")
+    ResponseEntity<MilestoneResponse> updateMilestone(@PathVariable Long id,
+                                                      @RequestBody @Valid MilestoneUpdateRequest request){
+        MilestoneResponse response = milestoneService.updateMilestone(id, request);
+        return ResponseEntity.ok(response);
     }
 }
