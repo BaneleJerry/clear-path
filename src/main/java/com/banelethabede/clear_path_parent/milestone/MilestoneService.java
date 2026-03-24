@@ -57,6 +57,10 @@ public class MilestoneService {
                 .toList();
     }
 
+    public MilestoneResponse getMilestone(Long id) {
+        return toResponse(getMilestoneById(id));
+    }
+
     @Transactional
     public MilestoneResponse updateMilestone(Long milestoneId, MilestoneUpdateRequest request){
         if (request == null) {
@@ -76,6 +80,12 @@ public class MilestoneService {
         milestone.setUpdatedAt(LocalDateTime.now());
 
         return toResponse(milestoneRepository.save(milestone));
+    }
+
+    @Transactional
+    public void deleteMilestone(Long milestoneId) {
+        Milestone milestone = getMilestoneById(milestoneId);
+        milestoneRepository.delete(milestone);
     }
 
     public Milestone getMilestoneById(Long id) {

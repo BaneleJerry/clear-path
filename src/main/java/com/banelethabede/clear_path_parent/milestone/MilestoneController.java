@@ -33,10 +33,21 @@ public class MilestoneController {
                 milestoneService.getProjectMilestones(id));
     }
 
+    @GetMapping("/milestone/{id}")
+    ResponseEntity<MilestoneResponse> getMilestone(@PathVariable Long id){
+        return ResponseEntity.ok(milestoneService.getMilestone(id));
+    }
+
     @PutMapping("/milestones/{id}")
     ResponseEntity<MilestoneResponse> updateMilestone(@PathVariable Long id,
                                                       @RequestBody @Valid MilestoneUpdateRequest request){
         MilestoneResponse response = milestoneService.updateMilestone(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/milestone/{id}")
+    ResponseEntity<?> deleteMilestone(@PathVariable Long id){
+        milestoneService.deleteMilestone(id);
+        return ResponseEntity.noContent().build();
     }
 }
