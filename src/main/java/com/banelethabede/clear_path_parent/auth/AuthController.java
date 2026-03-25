@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -61,7 +64,20 @@ public class AuthController {
         ));
     }
 
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("authenticated", true);
+        response.put("username", authentication.getName());
+        // .getAuthorities() returns a collection; good for checking roles like 'ADMIN'
+        response.put("authorities", authentication.getAuthorities());
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }

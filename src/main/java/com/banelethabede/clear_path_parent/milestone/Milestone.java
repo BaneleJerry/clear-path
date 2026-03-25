@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class Milestone {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     // Relationship

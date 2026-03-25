@@ -12,7 +12,7 @@ public interface MilestoneRepository extends JpaRepository<Milestone, Long> {
 
     boolean existsByProjectIdAndTitle(UUID projectID, @NotBlank(message = "Title is required") String title);
 
-    List<Milestone> findAllByProjectId(Long projectId);
+    List<Milestone> findAllByProjectId(UUID projectId);
     List<Milestone> findAllByProjectIdOrderByDueDateAsc(UUID projectId);
     List<Milestone> findAllByProjectIdOrderByDueDateDesc(UUID projectId);
 }
