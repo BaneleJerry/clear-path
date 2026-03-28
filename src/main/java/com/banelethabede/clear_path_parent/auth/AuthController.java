@@ -5,6 +5,7 @@ package com.banelethabede.clear_path_parent.auth;
 import com.banelethabede.clear_path_parent.auth.dto.AuthResponse;
 import com.banelethabede.clear_path_parent.auth.dto.IndividualRegistrationRequest;
 import com.banelethabede.clear_path_parent.auth.dto.LoginRequest;
+import com.banelethabede.clear_path_parent.auth.dto.TokenValidateResponse;
 import com.banelethabede.clear_path_parent.common.ApiResponse;
 import com.banelethabede.clear_path_parent.common.ApiResponseUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,10 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 
 import lombok.RequiredArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -65,18 +62,20 @@ public class AuthController {
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<?> validateToken(Authentication authentication) {
+    public ResponseEntity<TokenValidateResponse> validateToken(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("authenticated", true);
-        response.put("username", authentication.getName());
-        // .getAuthorities() returns a collection; good for checking roles like 'ADMIN'
-        response.put("authorities", authentication.getAuthorities());
+        TokenValidateResponse tokenValidateResponse = TokenValidateResponse.builder()
+                .username(authentication.getName())
+                .isAuthenticated(true)
+                .authorities(authentication.getAuthorities())
+                .build();
 
-        return ResponseEntity.ok(response);
+
+
+        return ResponseEntity.ok(tokenValidateResponse);
     }
 
 
