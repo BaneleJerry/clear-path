@@ -21,7 +21,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException ex) throws IOException {
 
         ApiResponse<Object> apiResponse = ApiResponse.builder()
-                .timestamp(OffsetDateTime.now())
+                .timestamp()
                 .status(HttpServletResponse.SC_UNAUTHORIZED)
                 .error("Unauthorized")
                 .message("Authentication required")

@@ -75,12 +75,16 @@ public class SecurityBeans {
 
 
                 .authorizeHttpRequests((auth) ->
-                        auth.requestMatchers("/api/auth/**", "/h2-console/**",
+                        auth.requestMatchers(
+                                        "/api/auth/login",
+                                        "/api/auth/register/**"
+                                        , "/h2-console/**",
                                         "/v3/api-docs/**",
                                         "/actuator/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                                .requestMatchers("/api/auth/validate").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(manager -> manager
