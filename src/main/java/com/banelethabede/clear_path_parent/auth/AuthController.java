@@ -50,15 +50,10 @@ public class AuthController {
      * Login endpoint.
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
 
         AuthResponse auth = authService.login(request);
-
-        return ResponseEntity.ok(ApiResponseUtil.success(
-                "Login Succesfully",
-                httpRequest.getRequestURI(),
-                auth
-        ));
+        return ResponseEntity.ok(auth);
     }
 
     @GetMapping("/validate")

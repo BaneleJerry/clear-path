@@ -1,0 +1,175 @@
+diff --git a/src/main/java/com/banelethabede/clear_path_parent/auth/AuthController.java b/src/main/java/com/banelethabede/clear_path_parent/auth/AuthController.java
+index e7f0a83..7ae3039 100644
+--- a/src/main/java/com/banelethabede/clear_path_parent/auth/AuthController.java
++++ b/src/main/java/com/banelethabede/clear_path_parent/auth/AuthController.java
+@@ -50,15 +50,10 @@ public class AuthController {
+      * Login endpoint.
+      */
+     @PostMapping("/login")
+-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
++    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+ 
+         AuthResponse auth = authService.login(request);
+-
+-        return ResponseEntity.ok(ApiResponseUtil.success(
+-                "Login Succesfully",
+-                httpRequest.getRequestURI(),
+-                auth
+-        ));
++        return ResponseEntity.ok(auth);
+     }
+ 
+     @GetMapping("/validate")
+diff --git a/src/main/java/com/banelethabede/clear_path_parent/security/config/JacksonConfig.java b/src/main/java/com/banelethabede/clear_path_parent/security/config/JacksonConfig.java
+index 6d60cab..9959dc0 100644
+--- a/src/main/java/com/banelethabede/clear_path_parent/security/config/JacksonConfig.java
++++ b/src/main/java/com/banelethabede/clear_path_parent/security/config/JacksonConfig.java
+@@ -11,7 +11,7 @@ public class JacksonConfig {
+     @Bean
+     public ObjectMapper objectMapper() {
+         ObjectMapper mapper = new ObjectMapper();
+-        mapper.registerModule(new JavaTimeModule()); // Fixes the OffsetDateTime error
++        mapper.registerModule(new JavaTimeModule());
+         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+         return mapper;
+     }
+diff --git a/src/main/java/com/banelethabede/clear_path_parent/security/config/JwtAuthenticationFilter.java b/src/main/java/com/banelethabede/clear_path_parent/security/config/JwtAuthenticationFilter.java
+index 75d8670..d911892 100644
+--- a/src/main/java/com/banelethabede/clear_path_parent/security/config/JwtAuthenticationFilter.java
++++ b/src/main/java/com/banelethabede/clear_path_parent/security/config/JwtAuthenticationFilter.java
+@@ -47,8 +47,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
+         System.out.println("REQUEST URI: " + request.getRequestURI());
+         System.out.println("CONTEXT PATH: " + request.getContextPath());
+ 
+-        if (path.startsWith("/api/auth/")
+-                || path.equals("/api/auth")
++        if (path.equals("/api/auth/login")
++                || path.startsWith("/api/auth/register")
+                 || path.contains("/swagger")
+                 || path.contains("/v3/api-docs")) {
+ 
+diff --git a/src/main/java/com/banelethabede/clear_path_parent/security/config/RestAuthenticationEntryPoint.java b/src/main/java/com/banelethabede/clear_path_parent/security/config/RestAuthenticationEntryPoint.java
+index 081ab74..5bf44a9 100644
+--- a/src/main/java/com/banelethabede/clear_path_parent/security/config/RestAuthenticationEntryPoint.java
++++ b/src/main/java/com/banelethabede/clear_path_parent/security/config/RestAuthenticationEntryPoint.java
+@@ -4,16 +4,21 @@ import com.banelethabede.clear_path_parent.common.ApiResponse;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ import jakarta.servlet.http.HttpServletRequest;
+ import jakarta.servlet.http.HttpServletResponse;
++import lombok.NoArgsConstructor;
++import lombok.RequiredArgsConstructor;
+ import org.springframework.security.core.AuthenticationException;
+ import org.springframework.security.web.AuthenticationEntryPoint;
++import org.springframework.stereotype.Component;
+ 
+ import java.io.IOException;
+-import java.time.LocalDateTime;
++
+ import java.time.OffsetDateTime;
+ 
++@Component
++@RequiredArgsConstructor
+ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+ 
+-    private final ObjectMapper mapper = new ObjectMapper();
++    private final ObjectMapper mapper;
+ 
+     @Override
+     public void commence(HttpServletRequest request,
+@@ -21,7 +26,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+                          AuthenticationException ex) throws IOException {
+ 
+         ApiResponse<Object> apiResponse = ApiResponse.builder()
+-                .timestamp()
++                .timestamp(OffsetDateTime.now())
+                 .status(HttpServletResponse.SC_UNAUTHORIZED)
+                 .error("Unauthorized")
+                 .message("Authentication required")
+diff --git a/src/main/java/com/banelethabede/clear_path_parent/security/config/SecurityBeans.java b/src/main/java/com/banelethabede/clear_path_parent/security/config/SecurityBeans.java
+index f93d537..1807a96 100644
+--- a/src/main/java/com/banelethabede/clear_path_parent/security/config/SecurityBeans.java
++++ b/src/main/java/com/banelethabede/clear_path_parent/security/config/SecurityBeans.java
+@@ -29,8 +29,9 @@ import java.time.OffsetDateTime;
+ @EnableMethodSecurity
+ public class SecurityBeans {
+ 
+-
+     private final JwtAuthenticationFilter jwtAuthenticationFilter;
++    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint; // inject
++    private final ObjectMapper objectMapper; // inject
+ 
+     @Bean
+     public PasswordEncoder passwordEncoder() {
+@@ -41,21 +42,18 @@ public class SecurityBeans {
+     public AuthenticationManager authenticationManager(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
+         authenticationProvider.setPasswordEncoder(passwordEncoder);
+-
+         return new ProviderManager(authenticationProvider);
+     }
+ 
+-
+     @Bean
+     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+         http
+                 .csrf(AbstractHttpConfigurer::disable)
+-                // 1. ADD THIS: Allows H2 Console frames to display
+                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+-
+                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
++                .cors(cors -> cors.configure(http))
+                 .exceptionHandling(exception -> exception
+-                        .authenticationEntryPoint(new RestAuthenticationEntryPoint())
++                        .authenticationEntryPoint(restAuthenticationEntryPoint) // use injected bean
+                         .accessDeniedHandler((request, response, ex) -> {
+                             ApiResponse<Object> apiResponse = ApiResponse.builder()
+                                     .timestamp(OffsetDateTime.now())
+@@ -69,16 +67,14 @@ public class SecurityBeans {
+                             response.setContentType("application/json");
+                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+ 
+-                            new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
++                            objectMapper.writeValue(response.getOutputStream(), apiResponse); // use injected mapper
+                         })
+                 )
+-
+-
+                 .authorizeHttpRequests((auth) ->
+                         auth.requestMatchers(
+                                         "/api/auth/login",
+-                                        "/api/auth/register/**"
+-                                        , "/h2-console/**",
++                                        "/api/auth/register/**",
++                                        "/h2-console/**",
+                                         "/v3/api-docs/**",
+                                         "/actuator/**",
+                                         "/swagger-ui/**",
+diff --git a/src/main/java/com/banelethabede/clear_path_parent/security/config/WebConfig.java b/src/main/java/com/banelethabede/clear_path_parent/security/config/WebConfig.java
+index 1490658..8c77013 100644
+--- a/src/main/java/com/banelethabede/clear_path_parent/security/config/WebConfig.java
++++ b/src/main/java/com/banelethabede/clear_path_parent/security/config/WebConfig.java
+@@ -9,8 +9,10 @@ public class WebConfig implements WebMvcConfigurer {
+     @Override
+     public void addCorsMappings(CorsRegistry registry) {
+         registry.addMapping("/**")
+-                .allowedOrigins("http://localhost:5173") // In production, replace * with your WSL IP
++                .allowedOrigins("http://localhost:5173")
+                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+-                .allowedHeaders("*");
++                .allowedHeaders("*")
++                .exposedHeaders("Authorization") // expose the header to frontend
++                .allowCredentials(true);
+     }
+ }
+\ No newline at end of file
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+index c403595..1f8f17f 100644
+--- a/src/main/resources/application.properties
++++ b/src/main/resources/application.properties
+@@ -32,4 +32,4 @@ spring.profiles.active=dev
+ logging.level.org.springframework.web.filter.CommonsRequestLoggingFilter=DEBUG
+ 
+ # Tells Jackson to format dates as strings (ISO-8601) instead of numeric arrays
+-spring.jackson.serialization.write-dates-as-timestamps=false
+\ No newline at end of file
++spring.jackson.serialization.write-dates-as-timestamps=false

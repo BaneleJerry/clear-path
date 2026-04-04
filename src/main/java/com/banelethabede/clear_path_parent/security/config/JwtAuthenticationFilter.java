@@ -47,8 +47,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("REQUEST URI: " + request.getRequestURI());
         System.out.println("CONTEXT PATH: " + request.getContextPath());
 
-        if (path.startsWith("/api/auth/")
-                || path.equals("/api/auth")
+        if (path.equals("/api/auth/login")
+                || path.startsWith("/api/auth/register")
                 || path.contains("/swagger")
                 || path.contains("/v3/api-docs")) {
 

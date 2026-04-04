@@ -4,16 +4,21 @@ import com.banelethabede.clear_path_parent.common.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+
 import java.time.OffsetDateTime;
 
+@Component
+@RequiredArgsConstructor
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
     @Override
     public void commence(HttpServletRequest request,
@@ -21,7 +26,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException ex) throws IOException {
 
         ApiResponse<Object> apiResponse = ApiResponse.builder()
-                .timestamp()
+                .timestamp(OffsetDateTime.now())
                 .status(HttpServletResponse.SC_UNAUTHORIZED)
                 .error("Unauthorized")
                 .message("Authentication required")

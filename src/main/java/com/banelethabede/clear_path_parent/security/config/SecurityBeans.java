@@ -29,8 +29,9 @@ import java.time.OffsetDateTime;
 @EnableMethodSecurity
 public class SecurityBeans {
 
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint; // inject
+    private final ObjectMapper objectMapper; // inject
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -41,21 +42,18 @@ public class SecurityBeans {
     public AuthenticationManager authenticationManager(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
         authenticationProvider.setPasswordEncoder(passwordEncoder);
-
         return new ProviderManager(authenticationProvider);
     }
-
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                // 1. ADD THIS: Allows H2 Console frames to display
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .cors(cors -> cors.configure(http))
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                        .authenticationEntryPoint(restAuthenticationEntryPoint) // use injected bean
                         .accessDeniedHandler((request, response, ex) -> {
                             ApiResponse<Object> apiResponse = ApiResponse.builder()
                                     .timestamp(OffsetDateTime.now())
@@ -69,16 +67,14 @@ public class SecurityBeans {
                             response.setContentType("application/json");
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
-                            new ObjectMapper().writeValue(response.getOutputStream(), apiResponse);
+                            objectMapper.writeValue(response.getOutputStream(), apiResponse); // use injected mapper
                         })
                 )
-
-
                 .authorizeHttpRequests((auth) ->
                         auth.requestMatchers(
                                         "/api/auth/login",
-                                        "/api/auth/register/**"
-                                        , "/h2-console/**",
+                                        "/api/auth/register/**",
+                                        "/h2-console/**",
                                         "/v3/api-docs/**",
                                         "/actuator/**",
                                         "/swagger-ui/**",
