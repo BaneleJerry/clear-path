@@ -2,7 +2,7 @@ package com.banelethabede.clear_path_parent.project;
 
 import com.banelethabede.clear_path_parent.exception.ResourceNotFoundException;
 import com.banelethabede.clear_path_parent.organization.Organization;
-import com.banelethabede.clear_path_parent.organization.dto.OrganizationRepository;
+import com.banelethabede.clear_path_parent.organization.OrganizationRepository;
 import com.banelethabede.clear_path_parent.project.dto.ProjectRequestDTO;
 import com.banelethabede.clear_path_parent.project.dto.ProjectResponseDTO;
 import jakarta.persistence.EntityNotFoundException;
