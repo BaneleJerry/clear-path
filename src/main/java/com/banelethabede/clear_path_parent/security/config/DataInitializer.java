@@ -3,7 +3,7 @@ package com.banelethabede.clear_path_parent.security.config;
 
 import com.banelethabede.clear_path_parent.organization.Organization;
 import com.banelethabede.clear_path_parent.organization.dto.OrganizationEnums;
-import com.banelethabede.clear_path_parent.organization.dto.OrganizationRepository;
+import com.banelethabede.clear_path_parent.organization.OrganizationRepository;
 import com.banelethabede.clear_path_parent.role.Role;
 import com.banelethabede.clear_path_parent.role.RoleName;
 import com.banelethabede.clear_path_parent.role.RoleRepository;

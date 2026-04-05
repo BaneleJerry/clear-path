@@ -39,10 +39,9 @@ public class UserService {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
-    public UserResponseDTO findUserById(UUID id) {
-        User user = userRepository.findById(id)
+    public User findUserById(UUID id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return mapToDTO(user);
     }
 
     @Transactional
@@ -84,5 +83,17 @@ public class UserService {
         user.setLastName(dto.getLastName());
 
         return mapToDTO(userRepository.save(user));
+    }
+
+    @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
+    public UserResponseDTO updateOrganization(User user) {
+        User DBuser = this.findUserById(user.getId());
+        DBuser.setOrganization(user.getOrganization());
+        return mapToDTO(userRepository.save(DBuser));
+    }
+
+    public int countByOrganisationId(UUID id) {
+        return userRepository.countByOrganisationId(id);
     }
 }
