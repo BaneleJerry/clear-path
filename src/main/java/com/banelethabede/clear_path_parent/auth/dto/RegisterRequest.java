@@ -6,11 +6,13 @@ import com.banelethabede.clear_path_parent.user.dto.UserDTO;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
-public class IndividualRegistrationRequest extends UserDTO {
+public class RegisterRequest extends UserDTO {
+
     @NotBlank
     @Size(min = 8)
     private String password;
+    private String inviteToken;
+    private String inviteCode;
 }

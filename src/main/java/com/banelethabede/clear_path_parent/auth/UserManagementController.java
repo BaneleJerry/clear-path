@@ -1,5 +1,6 @@
 package com.banelethabede.clear_path_parent.auth;
 
+import com.banelethabede.clear_path_parent.user.User;
 import com.banelethabede.clear_path_parent.user.UserService;
 import com.banelethabede.clear_path_parent.user.dto.UpdateUserStatusDTO;
 import com.banelethabede.clear_path_parent.user.dto.UserResponseDTO;
@@ -27,7 +28,7 @@ public class UserManagementController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<User> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.findUserById(id));
     }
 

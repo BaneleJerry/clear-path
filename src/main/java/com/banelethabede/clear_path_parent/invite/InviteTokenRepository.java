@@ -1,6 +1,8 @@
 package com.banelethabede.clear_path_parent.invite;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,5 +16,8 @@ public interface InviteTokenRepository extends JpaRepository<InviteToken, Long> 
 
     boolean existsByCode(String code);
 
-    long countByOrganisationIdAndUsedFalse(UUID organisationId);
+
+    long countByOrganizationIdAndUsedFalse(UUID organizationId);
+
+    long countByUsedFalseAndExpiresAtAfter(Instant now);
 }

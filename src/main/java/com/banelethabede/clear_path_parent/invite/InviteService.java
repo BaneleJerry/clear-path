@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -26,6 +28,7 @@ public class InviteService {
     private final OrganizationService   organizationService;
     private final InviteCodeGenerator   codeGenerator;
     private final JavaMailSender        mailSender;
+    private final InviteMapper          mapper;
 
     @Value("${app.invite.expiry-hours:48}")
     private int expiryHours;
@@ -33,8 +36,17 @@ public class InviteService {
     @Value("${app.base-url}")
     private String baseUrl;
 
+    @Transactional(readOnly = true)
+    public List<InviteResponse> getAllInvites() {
+        return inviteTokenRepository
+                .findAll()
+                .stream()
+                .map(mapper::toInviteResponse)
+                .toList();
+    }
+
     @Transactional
-    public InviteResponse sendInvite(Long inviterId, RoleName inviterRole, InviteRequest request) {
+    public InviteResponse sendInvite(UUID inviterId, RoleName inviterRole, InviteRequest request) {
 
         if (!InvitePermissionPolicy.canInvite(inviterRole, request.getAssignedRole())) {
             throw new InvitePermissionException(
@@ -54,9 +66,11 @@ public class InviteService {
             );
         }
 
-        Organization organization = organizationService.findEntityById(request.getOrganisationId());
+        Organization organization = request.getOrganisationId() != null
+                ? organizationService.findEntityById(request.getOrganisationId())
+                : null;
 
-        // 4. Generate a unique short code (retry on collision — statistically rare)
+
         String code = generateUniqueCode();
 
         // 5. Persist
@@ -173,5 +187,27 @@ public class InviteService {
             """.formatted(roleFriendly, link, baseUrl, invite.getCode(), expiryHours));
 
         mailSender.send(msg);
+    }
+
+    @Transactional(readOnly = true)
+    public InviteToken validateByToken(String token) {
+        InviteToken invite = inviteTokenRepository.findByToken(token)
+                .orElseThrow(() -> new InvalidInviteTokenException("Invite link is invalid"));
+        assertRedeemable(invite);
+        return invite; // ← no markUsed
+    }
+
+    @Transactional(readOnly = true)
+    public InviteToken validateByCodeOnly(RedeemByCodeRequest request) {
+        InviteToken invite = inviteTokenRepository
+                .findByCodeIgnoreCase(request.getCode())
+                .orElseThrow(() -> new InvalidInviteTokenException("Invite code not found"));
+
+        if (!invite.getInviteeEmail().equalsIgnoreCase(request.getEmail())) {
+            throw new InvalidInviteTokenException("Email does not match this invite code");
+        }
+
+        assertRedeemable(invite);
+        return invite; // ← no markUsed
     }
 }

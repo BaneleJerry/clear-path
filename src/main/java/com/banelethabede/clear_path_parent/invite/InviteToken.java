@@ -35,7 +35,7 @@ public class InviteToken {
     private RoleName assignedRole;
 
     @Column(nullable = false)
-    private Long invitedById;
+    private UUID invitedById;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

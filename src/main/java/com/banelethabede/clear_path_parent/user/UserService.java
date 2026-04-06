@@ -94,6 +94,6 @@ public class UserService {
     }
 
     public int countByOrganisationId(UUID id) {
-        return userRepository.countByOrganisationId(id);
+        return userRepository.countByOrganizationId(id);
     }
 }

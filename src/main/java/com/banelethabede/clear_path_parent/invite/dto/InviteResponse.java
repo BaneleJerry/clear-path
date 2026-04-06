@@ -11,5 +11,6 @@ public class InviteResponse {
     private String code;        // short code — shown in the email body + UI
     private String inviteeEmail;
     private RoleName assignedRole;
+    private boolean  used;
     private Instant expiresAt;
 }

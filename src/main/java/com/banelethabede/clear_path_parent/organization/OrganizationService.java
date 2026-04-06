@@ -196,7 +196,7 @@ public class OrganizationService {
     @Transactional(readOnly = true)
     public long countPendingInvites(UUID organisationId) {
         getOrThrow(organisationId);
-        return inviteTokenRepository.countByOrganisationIdAndUsedFalse(organisationId);
+        return inviteTokenRepository.countByOrganizationIdAndUsedFalse(organisationId);
     }
 
     // -------------------------------------------------------------------------

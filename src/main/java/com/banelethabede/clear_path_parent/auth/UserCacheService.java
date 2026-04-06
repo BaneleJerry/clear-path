@@ -19,6 +19,7 @@ public class UserCacheService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new UserAuthCache(
+                user.getId(),
                 user.getEmail(),
                 user.getPassword(),
                 user.getRole().getName().name(),

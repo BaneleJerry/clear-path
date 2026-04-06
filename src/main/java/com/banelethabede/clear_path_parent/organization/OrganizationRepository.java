@@ -15,7 +15,6 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
 
     boolean existsByNameIgnoreCase(String name);
 
-    long countByOrganisationIdAndUsedFalse(UUID organisationId);
 
     List<Organization> findByType(OrganizationEnums type);
 

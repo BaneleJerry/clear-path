@@ -74,6 +74,8 @@ public class SecurityBeans {
                         auth.requestMatchers(
                                         "/api/auth/login",
                                         "/api/auth/register/**",
+                                        "/api/invites/validate/code",
+                                        "/api/invites/validate",
                                         "/h2-console/**",
                                         "/v3/api-docs/**",
                                         "/actuator/**",
