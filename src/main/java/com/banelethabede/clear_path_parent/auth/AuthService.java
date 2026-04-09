@@ -22,6 +22,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
@@ -131,10 +132,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + request.getEmail()));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException(
-                    "Password mismatch for: " + request.getEmail() +
-                            " | stored hash: " + user.getPassword()
-            );
+            throw new BadCredentialsException("Invalid email or password.");
         }
 
         user.setActive(true);
